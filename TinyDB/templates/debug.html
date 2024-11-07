@@ -1,0 +1,71 @@
+<!-- templates/debug.html -->
+
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Debug: Sample Variants</h2>
+<table class="table table-striped table-bordered">
+    <thead class="table-dark">
+        <tr>
+            <th>chrom</th>
+            <th>pos</th>
+            <th>AF</th>
+            <th>AC</th>
+            <th>AN</th>
+            <th>ExcessHet</th>
+            <th>FS</th>
+            <th>MLEAC</th>
+            <th>MLEAF</th>
+            <th>MQ</th>
+            <th>QD</th>
+            <th>SOR</th>
+            <th>RS</th>
+            <th>clinvar_id</th>
+            <th>clinical_significance</th>
+            <th>conditions</th>
+            <th>review_status</th>
+            <th>AF_EXAC</th>
+            <th>CLNDISDB</th>
+            <th>CLNDN</th>
+            <th>CLNHGVS</th>
+            <th>CLNVC</th>
+            <th>CLNVCSO</th>
+            <th>GENEINFO</th>
+            <th>MC</th>
+            <th>ORIGIN</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for variant in variants %}
+            <tr>
+                <td>{{ variant.chrom }}</td>
+                <td>{{ variant.pos }}</td>
+                <td>{{ variant.AF }}</td>
+                <td>{{ variant.AC }}</td>
+                <td>{{ variant.AN }}</td>
+                <td>{{ variant.ExcessHet }}</td>
+                <td>{{ variant.FS }}</td>
+                <td>{{ variant.MLEAC }}</td>
+                <td>{{ variant.MLEAF }}</td>
+                <td>{{ variant.MQ }}</td>
+                <td>{{ variant.QD }}</td>
+                <td>{{ variant.SOR }}</td>
+                <td>{{ variant.RS }}</td>
+                <td>{{ variant.clinvar_id }}</td>
+                <td>{{ variant.clinical_significance }}</td>
+                <td>{{ variant.conditions }}</td>
+                <td>{{ variant.review_status }}</td>
+                <td>{{ variant.AF_EXAC }}</td>
+                <td>{{ variant.CLNDISDB }}</td>
+                <td>{{ variant.CLNDN }}</td>
+                <td>{{ variant.CLNHGVS }}</td>
+                <td>{{ variant.CLNVC }}</td>
+                <td>{{ variant.CLNVCSO }}</td>
+                <td>{{ variant.GENEINFO }}</td>
+                <td>{{ variant.MC }}</td>
+                <td>{{ variant.ORIGIN }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

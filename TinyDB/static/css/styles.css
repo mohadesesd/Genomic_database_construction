@@ -1,0 +1,14 @@
+/* static/css/styles.css */
+
+/* Example Custom Styles */
+
+/* Center the error page content */
+.error-page {
+    height: 80vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+/* Additional custom styles can be added below */

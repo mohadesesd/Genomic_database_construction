@@ -1,0 +1,230 @@
+<!-- templates/variants.html -->
+
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Genomic Variants</h2>
+
+<!-- Search Form -->
+<form method="GET" action="{{ url_for('variants') }}" class="mb-4">
+    <div class="card">
+        <div class="card-header">
+            Advanced Search
+        </div>
+        <div class="card-body">
+            <div id="search-criteria">
+                {% if search_criteria %}
+                    {% for criterion in search_criteria %}
+                        <div class="row mb-3 search-row">
+                            <div class="col-md-3">
+                                <select name="field[]" class="form-select field-select" required>
+                                    <option value="" disabled {% if not criterion.field %}selected{% endif %}>Select Field</option>
+                                    {% for column in filterable_columns %}
+                                        <option value="{{ column.name }}" {% if criterion.field == column.name %}selected{% endif %}>{{ column.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <select name="operator[]" class="form-select operator-select" required>
+                                    <option value="" disabled {% if not criterion.operator %}selected{% endif %}>Select Operator</option>
+                                    {% set current_column = filterable_columns | selectattr("name", "equalto", criterion.field) | first %}
+                                    {% if current_column.type == 'number' %}
+                                        <option value="equals" {% if criterion.operator == 'equals' %}selected{% endif %}>Equals</option>
+                                        <option value="greater_than" {% if criterion.operator == 'greater_than' %}selected{% endif %}>Greater Than</option>
+                                        <option value="less_than" {% if criterion.operator == 'less_than' %}selected{% endif %}>Less Than</option>
+                                        <option value="greater_than_or_equal" {% if criterion.operator == 'greater_than_or_equal' %}selected{% endif %}>Greater Than or Equal</option>
+                                        <option value="less_than_or_equal" {% if criterion.operator == 'less_than_or_equal' %}selected{% endif %}>Less Than or Equal</option>
+                                    {% else %}
+                                        <option value="equals" {% if criterion.operator == 'equals' %}selected{% endif %}>Equals</option>
+                                        <option value="contains" {% if criterion.operator == 'contains' %}selected{% endif %}>Contains</option>
+                                    {% endif %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                {% if current_column.type == 'number' %}
+                                    <input type="number" step="any" name="value[]" class="form-control" placeholder="Numeric Value" value="{{ criterion.value }}" required>
+                                {% else %}
+                                    <input type="text" name="value[]" class="form-control" placeholder="Value" value="{{ criterion.value }}" required>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-2 d-flex align-items-center">
+                                <button type="button" class="btn btn-danger remove-row">Remove</button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="row mb-3 search-row">
+                        <div class="col-md-3">
+                            <select name="field[]" class="form-select field-select" required>
+                                <option value="" disabled selected>Select Field</option>
+                                {% for column in filterable_columns %}
+                                    <option value="{{ column.name }}">{{ column.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select name="operator[]" class="form-select operator-select" required>
+                                <option value="" disabled selected>Select Operator</option>
+                                <option value="equals">Equals</option>
+                                <option value="contains">Contains</option>
+                                <option value="greater_than">Greater Than</option>
+                                <option value="less_than">Less Than</option>
+                                <option value="greater_than_or_equal">Greater Than or Equal</option>
+                                <option value="less_than_or_equal">Less Than or Equal</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" name="value[]" class="form-control" placeholder="Value" required>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-center">
+                            <button type="button" class="btn btn-danger remove-row">Remove</button>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+            <button type="button" id="add-row" class="btn btn-secondary mb-3">Add Another Criterion</button>
+            <div class="mb-3">
+                <label for="logic" class="form-label">Combine with:</label>
+                <select name="logic" id="logic" class="form-select" required>
+                    <option value="and" {% if request.args.get('logic') == 'and' %}selected{% endif %}>AND</option>
+                    <option value="or" {% if request.args.get('logic') == 'or' %}selected{% endif %}>OR</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Search</button>
+            <a href="{{ url_for('variants') }}" class="btn btn-secondary">Reset</a>
+            <a href="{{ url_for('export_variants', **request.args) }}" class="btn btn-success">Export Results</a>
+        </div>
+    </div>
+</form>
+
+<!-- Variants Table -->
+<div class="table-responsive">
+    <table class="table table-striped table-bordered">
+        <thead class="table-dark">
+            <tr>
+                {% for header in header_keys %}
+                    <th>{{ header }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for variant in variants %}
+                <tr>
+                    {% for key in header_keys %}
+                        <td>{{ variant.get(key, 'N/A') }}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination -->
+{% if pagination.total_pages > 1 %}
+    <div class="d-flex justify-content-center">
+        {{ pagination.links }}
+    </div>
+{% endif %}
+
+<!-- No Results Message -->
+{% if total == 0 %}
+    <div class="alert alert-warning" role="alert">
+        No variants found matching the search criteria.
+    </div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// JavaScript to handle adding and removing search criteria rows
+document.addEventListener('DOMContentLoaded', function () {
+    const filterableColumns = {{ filterable_columns | tojson }};
+
+    // Function to populate operator options based on field type
+    function updateOperatorOptions(fieldSelect, operatorSelect, valueInput) {
+        const selectedField = fieldSelect.value;
+        const column = filterableColumns.find(col => col.name === selectedField);
+        const fieldType = column ? column.type : 'text';
+
+        // Clear existing operator options
+        operatorSelect.innerHTML = '<option value="" disabled selected>Select Operator</option>';
+
+        if (fieldType === 'number') {
+            operatorSelect.innerHTML += `
+                <option value="equals">Equals</option>
+                <option value="greater_than">Greater Than</option>
+                <option value="less_than">Less Than</option>
+                <option value="greater_than_or_equal">Greater Than or Equal</option>
+                <option value="less_than_or_equal">Less Than or Equal</option>
+            `;
+            // Adjust input type to number
+            valueInput.type = 'number';
+            valueInput.step = 'any';
+            valueInput.placeholder = 'Numeric Value';
+        } else {
+            operatorSelect.innerHTML += `
+                <option value="equals">Equals</option>
+                <option value="contains">Contains</option>
+            `;
+            // Adjust input type to text
+            valueInput.type = 'text';
+            valueInput.removeAttribute('step');
+            valueInput.placeholder = 'Value';
+        }
+    }
+
+    // Add event listener for dynamic operator selection
+    document.getElementById('search-criteria').addEventListener('change', function (e) {
+        if (e.target && e.target.classList.contains('field-select')) {
+            const fieldSelect = e.target;
+            const operatorSelect = fieldSelect.parentElement.nextElementSibling.querySelector('.operator-select');
+            const valueInput = operatorSelect.parentElement.nextElementSibling.querySelector('input');
+            updateOperatorOptions(fieldSelect, operatorSelect, valueInput);
+        }
+    });
+
+    // Initial update for pre-selected criteria
+    const initialFieldSelects = document.querySelectorAll('.field-select');
+    initialFieldSelects.forEach(function(fieldSelect) {
+        const operatorSelect = fieldSelect.parentElement.nextElementSibling.querySelector('.operator-select');
+        const valueInput = operatorSelect.parentElement.nextElementSibling.querySelector('input');
+        if (fieldSelect.value) {
+            updateOperatorOptions(fieldSelect, operatorSelect, valueInput);
+        }
+    });
+
+    // Handle adding new search criteria rows
+    document.getElementById('add-row').addEventListener('click', function () {
+        const searchCriteria = document.getElementById('search-criteria');
+        const lastRow = searchCriteria.querySelector('.search-row:last-child');
+        const newRow = lastRow.cloneNode(true);
+
+        // Reset select and input values
+        const fieldSelect = newRow.querySelector('.field-select');
+        fieldSelect.selectedIndex = 0;
+        const operatorSelect = newRow.querySelector('.operator-select');
+        operatorSelect.innerHTML = '<option value="" disabled selected>Select Operator</option>';
+        const valueInput = newRow.querySelector('input');
+        valueInput.value = '';
+        valueInput.type = 'text';
+        valueInput.removeAttribute('step');
+        valueInput.placeholder = 'Value';
+
+        searchCriteria.appendChild(newRow);
+    });
+
+    // Handle removing search criteria rows
+    document.getElementById('search-criteria').addEventListener('click', function (e) {
+        if (e.target && e.target.classList.contains('remove-row')) {
+            const rows = document.querySelectorAll('.search-row');
+            if (rows.length > 1) {
+                e.target.closest('.search-row').remove();
+            } else {
+                alert('At least one search criterion is required.');
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

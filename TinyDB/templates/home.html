@@ -1,0 +1,13 @@
+<!-- templates/home.html -->
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="jumbotron">
+    <h1 class="display-4">Welcome to the Genomic Variants Database</h1>
+    <p class="lead">Explore and search through genomic variants with ease.</p>
+    <hr class="my-4">
+    <p>Get started by navigating to the Variants page.</p>
+    <a class="btn btn-primary btn-lg" href="{{ url_for('variants') }}" role="button">View Variants</a>
+</div>
+{% endblock %}

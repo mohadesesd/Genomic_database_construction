@@ -1,0 +1,24 @@
+/* static/css/styles.css */
+
+/* Center the error page content */
+.error-page {
+    height: 80vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+/* Additional custom styles can be added below */
+
+/* Style for badge to handle long text */
+.badge-info {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Table styling for better readability */
+.table th, .table td {
+    vertical-align: middle;
+}

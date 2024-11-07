@@ -1,0 +1,226 @@
+<!-- templates/variant_detail.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Variant Details - {{ variant.chrom }}:{{ variant.pos }}</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons (Optional) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('variants') }}">Genomic Variants</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        <h1 class="mb-4">Variant Details</h1>
+        
+        <!-- Toggle Buttons for Switching Between Tables -->
+        <div class="mb-4">
+            <button class="btn btn-primary" id="general-info-btn">General Information</button>
+            <button class="btn btn-secondary" id="clinvar-info-btn">ClinVar Annotations</button>
+        </div>
+
+        <!-- Variant General Information -->
+        <div class="card mb-4" id="general-info">
+            <div class="card-header">
+                <h5 class="mb-0">General Information</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered">
+                    <tr>
+                        <th>Variant ID</th>
+                        <td>{{ variant.variant_variant_id }}</td>
+                    </tr>
+                    <tr>
+                        <th>Chromosome</th>
+                        <td>{{ variant.chrom }}</td>
+                    </tr>
+                    <tr>
+                        <th>Position</th>
+                        <td>{{ variant.pos }}</td>
+                    </tr>
+                    <tr>
+                        <th>Reference Allele</th>
+                        <td>{{ variant.ref }}</td>
+                    </tr>
+                    <tr>
+                        <th>Alternate Allele</th>
+                        <td>{{ variant.alt }}</td>
+                    </tr>
+                    <tr>
+                        <th>Quality</th>
+                        <td>{{ variant.qual }}</td>
+                    </tr>
+                    <tr>
+                        <th>Filter</th>
+                        <td>{{ variant.filter }}</td>
+                    </tr>
+                    <tr>
+                        <th>DP</th>
+                        <td>{{ variant.DP }}</td>
+                    </tr>
+                    <tr>
+                        <th>AF</th>
+                        <td>{{ variant.AF }}</td>
+                    </tr>
+                    <tr>
+                        <th>AC</th>
+                        <td>{{ variant.AC }}</td>
+                    </tr>
+                    <tr>
+                        <th>AN</th>
+                        <td>{{ variant.AN }}</td>
+                    </tr>
+                    <tr>
+                        <th>ExcessHet</th>
+                        <td>{{ variant.ExcessHet }}</td>
+                    </tr>
+                    <tr>
+                        <th>FS</th>
+                        <td>{{ variant.FS }}</td>
+                    </tr>
+                    <tr>
+                        <th>MLEAC</th>
+                        <td>{{ variant.MLEAC }}</td>
+                    </tr>
+                    <tr>
+                        <th>MLEAF</th>
+                        <td>{{ variant.MLEAF }}</td>
+                    </tr>
+                    <tr>
+                        <th>MQ</th>
+                        <td>{{ variant.MQ }}</td>
+                    </tr>
+                    <tr>
+                        <th>QD</th>
+                        <td>{{ variant.QD }}</td>
+                    </tr>
+                    <tr>
+                        <th>SOR</th>
+                        <td>{{ variant.SOR }}</td>
+                    </tr>
+                    <tr>
+                        <th>RS</th>
+                        <td>{{ variant.RS }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- ClinVar Annotations -->
+        <div class="card mb-4" id="clinvar-info" style="display: none;">
+            <div class="card-header">
+                <h5 class="mb-0">ClinVar Annotations</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered">
+                    <tr>
+                        <th>ClinVar ID</th>
+                        <td>{{ variant.clinvar_id or 'N/A' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Clinical Significance</th>
+                        <td>{{ variant.clinical_significance or 'N/A' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Condition</th>
+                        <td>{{ variant.condition or 'N/A' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Review Status</th>
+                        <td>{{ variant.review_status or 'N/A' }}</td>
+                    </tr>
+                    <tr>
+                        <th>CLNREVSTAT</th>
+                        <td>{{ variant.CLNREVSTAT or 'N/A' }}</td>
+                    </tr>
+                    <tr>
+                        <th>CLNSIG</th>
+                        <td>{{ variant.CLNSIG or 'N/A' }}</td>
+                    </tr>
+                    <tr>
+                        <th>CLNVC</th>
+                        <td>{{ variant.CLNVC or 'N/A' }}</td>
+                    </tr>
+                    <tr>
+                        <th>CLNVCSO</th>
+                        <td>{{ variant.CLNVCSO or 'N/A' }}</td>
+                    </tr>
+                    <tr>
+                        <th>GENEINFO</th>
+                        <td>{{ variant.GENEINFO or 'N/A' }}</td>
+                    </tr>
+                    <tr>
+                        <th>MC</th>
+                        <td>{{ variant.MC or 'N/A' }}</td>
+                    </tr>
+                    <tr>
+                        <th>ORIGIN</th>
+                        <td>{{ variant.ORIGIN or 'N/A' }}</td>
+                    </tr>
+                    <tr>
+                        <th>ALLELEID</th>
+                        <td>{{ variant.ALLELEID or 'N/A' }}</td>
+                    </tr>
+                    <tr>
+                        <th>CLNDISDB</th>
+                        <td>{{ variant.CLNDISDB or 'N/A' }}</td>
+                    </tr>
+                    <tr>
+                        <th>CLNDN</th>
+                        <td>{{ variant.CLNDN or 'N/A' }}</td>
+                    </tr>
+                    <tr>
+                        <th>CLNHGVS</th>
+                        <td>{{ variant.CLNHGVS or 'N/A' }}</td>
+                    </tr>
+                    <tr>
+                        <th>AF_EXAC</th>
+                        <td>{{ variant.AF_EXAC or 'N/A' }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <a href="{{ url_for('variants') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Variants
+        </a>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JavaScript for Toggle Functionality -->
+    <script>
+        document.getElementById('general-info-btn').addEventListener('click', function() {
+            document.getElementById('general-info').style.display = 'block';
+            document.getElementById('clinvar-info').style.display = 'none';
+            this.classList.add('btn-primary');
+            this.classList.remove('btn-secondary');
+            document.getElementById('clinvar-info-btn').classList.add('btn-secondary');
+            document.getElementById('clinvar-info-btn').classList.remove('btn-primary');
+        });
+
+        document.getElementById('clinvar-info-btn').addEventListener('click', function() {
+            document.getElementById('clinvar-info').style.display = 'block';
+            document.getElementById('general-info').style.display = 'none';
+            this.classList.add('btn-primary');
+            this.classList.remove('btn-secondary');
+            document.getElementById('general-info-btn').classList.add('btn-secondary');
+            document.getElementById('general-info-btn').classList.remove('btn-primary');
+        });
+    </script>
+</body>
+</html>
+

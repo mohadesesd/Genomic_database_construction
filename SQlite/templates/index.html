@@ -1,0 +1,253 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Genomic Variants</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons (Optional) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('variants') }}">Genomic Variants</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        <h1 class="mb-4">Genomic Variants</h1>
+        
+        <!-- Advanced Search Form -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Advanced Search</h5>
+            </div>
+            <div class="card-body">
+                <form method="get" action="{{ url_for('variants') }}" id="advanced-search-form">
+                    <div id="criteria-container">
+                        <!-- Criteria Row Template -->
+                        <div class="row g-3 align-items-center mb-3 criteria-row">
+                            <div class="col-md-4">
+                                <label class="form-label">Field</label>
+                                <select name="field_1" class="form-select" required>
+                                    <option value="" disabled selected>Select Field</option>
+                                    {% for column in filterable_columns %}
+                                        <option value="{{ column.name }}">{{ column.name.replace('_', ' ').capitalize() }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Operator</label>
+                                <select name="operator_1" class="form-select" required>
+                                    <option value="" disabled selected>Select Operator</option>
+                                    <option value="equals">Equals</option>
+                                    <option value="contains">Contains</option>
+                                    <option value="starts_with">Starts With</option>
+                                    <option value="ends_with">Ends With</option>
+                                    <option value="greater_than">Greater Than</option>
+                                    <option value="less_than">Less Than</option>
+                                    <option value="greater_than_or_equal">Greater Than or Equal</option>
+                                    <option value="less_than_or_equal">Less Than or Equal</option>
+                                    <option value="between">Between</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Value</label>
+                                <input type="text" name="value_1" class="form-control" placeholder="Enter value" required>
+                            </div>
+                            <div class="col-md-1 d-flex align-items-end">
+                                <button type="button" class="btn btn-danger remove-criterion-btn"><i class="bi bi-dash-circle"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Hidden field to track the number of criteria -->
+                    <input type="hidden" id="num_criteria" name="num_criteria" value="1">
+                    <button type="button" class="btn btn-secondary mb-3" id="add-criterion-btn"><i class="bi bi-plus-circle"></i> Add Criterion</button>
+                    <div class="mb-3">
+                        <label class="form-label">Combine Criteria Using:</label>
+                        <select name="logic" class="form-select w-25" required>
+                            <option value="and" {% if not criteria or criteria|length == 0 or criteria|length == 1 or request.args.get('logic', 'and') == 'and' %}selected{% endif %}>AND</option>
+                            <option value="or" {% if request.args.get('logic') == 'or' %}selected{% endif %}>OR</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Search</button>
+                    <a href="{{ url_for('variants') }}" class="btn btn-secondary"><i class="bi bi-arrow-counterclockwise"></i> Reset</a>
+                </form>
+            </div>
+        </div>
+
+        <!-- Variants Table -->
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        {% for key in header_keys %}
+                            <th scope="col">{{ key.replace('_', ' ').capitalize() }}</th>
+                        {% endfor %}
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for variant in variants %}
+                        <tr>
+                            {% for key in header_keys %}
+                                <td>
+                                    {% if variant[key] is not none and variant[key] != "" %}
+                                        {{ variant[key] }}
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                            {% endfor %}
+                            <td>
+                                <a href="{{ url_for('variant_detail', variant_id=variant['variant_variant_id']) }}" 
+                                    class="btn btn-sm btn-info" title="View Details">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if page > 1 %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('variants', page=1, **filtered_args) }}" aria-label="First">
+                            <span aria-hidden="true">&laquo;&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('variants', page=page-1, **filtered_args) }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link" aria-hidden="true">&laquo;&laquo;</span>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link" aria-hidden="true">&laquo;</span>
+                    </li>
+                {% endif %}
+
+                {% set max_display = 5 %}
+                {% set start = page - (max_display // 2) %}
+                {% set end = page + (max_display // 2) %}
+                {% if start < 1 %}
+                    {% set end = end + (1 - start) %}
+                    {% set start = 1 %}
+                {% endif %}
+                {% if end > total_pages %}
+                    {% set start = start - (end - total_pages) %}
+                    {% set end = total_pages %}
+                    {% if start < 1 %}
+                        {% set start = 1 %}
+                    {% endif %}
+                {% endif %}
+
+                {% for p in range(start, end + 1) %}
+                    {% if p == page %}
+                        <li class="page-item active"><span class="page-link">{{ p }}</span></li>
+                    {% else %}
+                        <li class="page-item"><a class="page-link" href="{{ url_for('variants', page=p, **filtered_args) }}">{{ p }}</a></li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page < total_pages %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('variants', page=page+1, **filtered_args) }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('variants', page=total_pages, **filtered_args) }}" aria-label="Last">
+                            <span aria-hidden="true">&raquo;&raquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link" aria-hidden="true">&raquo;</span>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link" aria-hidden="true">&raquo;&raquo;</span>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery (Required for Bootstrap's JavaScript plugins) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Custom JS for Advanced Search -->
+    <script>
+        $(document).ready(function(){
+            // Corrected criteriaCount initialization using Jinja conditional
+            let criteriaCount = {% if criteria %}{{ criteria|length }}{% else %}1{% endif %};
+
+            // Function to add a new criteria row
+            $('#add-criterion-btn').click(function(){
+                criteriaCount += 1;
+                $('#num_criteria').val(criteriaCount);
+                let newRow = `
+                    <div class="row g-3 align-items-center mb-3 criteria-row">
+                        <div class="col-md-4">
+                            <label class="form-label">Field</label>
+                            <select name="field_${criteriaCount}" class="form-select" required>
+                                <option value="" disabled selected>Select Field</option>
+                                {% for column in filterable_columns %}
+                                    <option value="{{ column.name }}">{{ column.name.replace('_', ' ').capitalize() }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Operator</label>
+                            <select name="operator_${criteriaCount}" class="form-select" required>
+                                <option value="" disabled selected>Select Operator</option>
+                                <option value="equals">Equals</option>
+                                <option value="contains">Contains</option>
+                                <option value="starts_with">Starts With</option>
+                                <option value="ends_with">Ends With</option>
+                                <option value="greater_than">Greater Than</option>
+                                <option value="less_than">Less Than</option>
+                                <option value="greater_than_or_equal">Greater Than or Equal</option>
+                                <option value="less_than_or_equal">Less Than or Equal</option>
+                                <option value="between">Between</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Value</label>
+                            <input type="text" name="value_${criteriaCount}" class="form-control" placeholder="Enter value" required>
+                        </div>
+                        <div class="col-md-1 d-flex align-items-end">
+                            <button type="button" class="btn btn-danger remove-criterion-btn"><i class="bi bi-dash-circle"></i></button>
+                        </div>
+                    </div>
+                `;
+                $('#criteria-container').append(newRow);
+            });
+
+            // Function to remove a criteria row
+            $(document).on('click', '.remove-criterion-btn', function(){
+                $(this).closest('.criteria-row').remove();
+                criteriaCount -= 1;
+                $('#num_criteria').val(criteriaCount);
+            });
+        });
+    </script>
+</body>
+</html>
